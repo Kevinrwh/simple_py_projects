@@ -1,5 +1,6 @@
 import random
-import stringprep
+import re
+from sqlite3 import Row
 
 # Board creation
 class Board:
@@ -87,7 +88,7 @@ class Board:
         # dig location with neighboring bombs
         # dig at  location with no neighboring bombs -> dig neighbors!
 
-        self.dug.add(row, col) # keep track of digs
+        self.dug.add((row, col)) # keep track of digs
 
         if self.board[row][col] == '*':
             return False
@@ -95,7 +96,7 @@ class Board:
             return True
         
         # self.board[row][col] == 0
-        for r in range(max(0,r-1), min(self.dim_size-1, (row+1)+1)):
+        for r in range(max(0,row-1), min(self.dim_size-1, (row+1)+1)):
             for c in range(max(0, col-1), min(self.dim_size, (col-1)+1)):
                 if (r,c) in self.dug:
                     continue # don't dig where you've already dug
@@ -159,18 +160,50 @@ class Board:
 def play(dim_size=10, num_bombs=10):
     # 1) Create the board and plant bombs
     board = Board(dim_size, num_bombs)
+    safe = True
 
     # 2) Show the user the board and ask where to plant the bombs
-    print(board.__str__())
+    # print(board.__str__())
 
     # 3a) If bomb, show game over
-    
+
     # 3b) If not bomb, dig recursively until each square
     #       is at least next to a bomb
 
     # 4) Repeat 2 and 3 until there are no more places to dig -> Win
 
-    pass
+    while len(board.dug) < board.dim_size ** 2 - num_bombs:
+        print(board)
 
+        # regex split is used to split the string by the regex
+        # comma means detect commas, parentheses means eliminate any amount of spaces
+        # match any part of the string that contains a comma
+        # 0,0 or 0 or 0,     0
+        user_input = re.split(',(\\s)*', input("Where would you like to dig?\nChoice: "))
+        
+        # take first and last value
+        row, col = int(user_input[0]), int(user_input[-1])
+
+        # out of bounds
+        if row < 0 or row >= board.dim_size or col < 0 or col >= dim_size:
+            print("Invalid location. Try again")
+            continue
+    
+        # valid move, dig
+        safe = board.dig(row, col)
+
+        if not safe:
+            # dug a bomb 
+            break # game over
+        
+    # 2 ways we could've ended the loop. Check for win or lose.
+    if safe:
+        print("Congrations! You won!")
+    else:
+        print("Sorry. Game over!")
+        board.dug = [(r,c) for r in range(board.dim_size) for c in range(board.dim_size)]
+        print(board)
+
+# Good practice
 if __name__ == '__main__':
     play()
