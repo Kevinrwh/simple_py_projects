@@ -26,12 +26,17 @@ def bin_search(l, target, low, high):
     else: # left side
         return bin_search(l, target, low, mid-1)
 
+length = 1000
+test_list = set()
 
-test_list = [int(random.randint(1,10000)) for i in range(500)]
-test_list.sort()
-test_target = random.randint(1,100)
+while len(test_list) < length:
+    test_list.add(random.randint(-30*length, 30*length))
 
-print('Searching for {} in {}'.format(test_target, test_list))
+test_list = sorted(list(test_list))
+test_target = random.choice(test_list)
+
+
+print('Searching for {}'.format(test_target))
 
 # Search for the target using 
 start = time.time()
