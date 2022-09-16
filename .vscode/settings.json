@@ -1,0 +1,7 @@
+{
+    "python.testing.pytestArgs": [
+        "binary_search"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
+}
