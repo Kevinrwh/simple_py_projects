@@ -1,6 +1,5 @@
 import random
 import re
-from sqlite3 import Row
 
 # Board creation
 class Board:
@@ -198,7 +197,7 @@ def play(dim_size=10, num_bombs=10):
         
     # 2 ways we could've ended the loop. Check for win or lose.
     if safe:
-        print("Congrations! You won!")
+        print("Congratulations! You won!")
     else:
         print("Sorry. Game over!")
         board.dug = [(r,c) for r in range(board.dim_size) for c in range(board.dim_size)]
