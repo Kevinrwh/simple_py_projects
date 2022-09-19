@@ -4,112 +4,113 @@ import re
 # Board creation
 class Board:
     def __init__(self, dim_size, num_bombs) -> None:
+        # Keep track of dimensions and number of bombs
         self.dim_size = dim_size
         self.num_bombs = num_bombs
 
-        # Create the board
-
-        # Initialize the set of locations unconvered
-        # We'll save row, col tuples
+        # Initial set of locations dug into as a set of tuples
         self.dug = set()
 
-        # Helper function makes new board based on
-        # dimensions and number of bombs
-        # constructing the list or lists here (2D board)
+        # Make the board
         self.board = self.make_new_board() # plant bombs
         
-        # Helper function assigns values to board
+        # Add values to the board
         self.assign_values_to_board()
 
+    # Helper function to make the board given dimensions and number of bombs.
     def make_new_board(self):
 
-        # Creates a 2D board
+        # Initialize 2D board given dimensions
         board = [[None for _ in range(self.dim_size)] for _ in range(self.dim_size)]
 
-        # Plant bombs
+        # Track bombs
         bombs_planted = 0
 
+        # Plant the bombs
         while bombs_planted < self.num_bombs:
-            # pick a random location - used as an ID
+            # Choose a random location in the board
             loc = random.randint(0, self.dim_size**2-1)
 
-            # get the row,col for location
+            # Identify the location as a row, col tuple
             row = loc // self.dim_size # division gets row
             col = loc % self.dim_size # mod gets col
             
-            # If we've alread planted a bomb there
+            # Ignore if there's a bomb there already
             if board[row][col] == '*':
                 continue
 
-            board[row][col] = '*' # plant bomb
+            # Plant the bomb
+            board[row][col] = '*' 
             bombs_planted += 1
         
         return board
 
+    # Helper function precomputes andassigns values to locations 
+    # corresponding to bombs in proximity of each location
     def assign_values_to_board(self):
-        # Now that we have bombs planted. Assign 0-8 
-        # to all empty spaces, representing how many
-        # neighboring bombs there are. Precomputing
-        # makes things faster. 
 
+         # Assign values from 0-8 to each location
+         # since there are max a total of 8 neighboring spaces
         for r in range(self.dim_size):
             for c in range(self.dim_size):
+                # If there's a bomb here, don't calculate anything
                 if self.board[r][c] == '*':
-                    # if bomb, don't calculate anything
                     continue
+
+                # Identifies neighboring bombs of this location
                 self.board[r][c] = self.get_num_neighboring_bombs(r,c)
     
+    # Helper function to determine neighboring bombs for this location
     def get_num_neighboring_bombs(self, row, col):
-        # Iterate through neighboring positions and sum
-        # number of bombs
 
+        # Keep track of bombs
         num_neighboring_bombs = 0
 
-        # Sum up bombs of neighbors, make sure to check bounds
+        # Sum up all bombs neighboring this location
+        # Make sure to check bounds with min and max
         for r in range(max(0,row-1), min(self.dim_size-1, (row+1)+1)):
             for c in range(max(0, col-1), min(self.dim_size, (col-1)+1)):
+                # Ignore location of interest
                 if r == row and c == col:
-                    # original location, don't check this
                     continue
                 
-                # Sum bombs
+                # If there's a bomb, add it
                 if self.board[r][c] == '*':
                     num_neighboring_bombs += 1
         
         return num_neighboring_bombs
     
+    # Helper function to "dig" at that location. Returns True if success, or False
+    # if there was a bomb at the location.
     def dig(self, row, col):
-        # dig at the location
-        # return True if successful dig, False if bomb dug
 
-        # Scenarios
-        # hit bomb -> game over
-        # dig location with neighboring bombs
-        # dig at  location with no neighboring bombs -> dig neighbors!
+        # 3 Scenarios
+        # Bomb is hit -> game over
+        # Successful dig at a location with neighboring bombs
+        # Successful dig at a location with no neighboring bombs -> dig neighbors
 
-        self.dug.add((row, col)) # keep track of digs
+        self.dug.add((row, col)) # Keep track of digs
 
+        #  Check if bomb or not. If not, determine return if neighboring bombs
         if self.board[row][col] == '*':
             return False
         elif self.board[row][col] > 0:
             return True
         
-        # self.board[row][col] == 0
+        # No neighboring bombs (self.board[row][col] == 0) -> dig neighbors
         for r in range(max(0,row-1), min(self.dim_size-1, (row+1)+1)):
             for c in range(max(0, col-1), min(self.dim_size, (col-1)+1)):
                 if (r,c) in self.dug:
-                    continue # don't dig where you've already dug
+                    continue # Ignore where we've dug already
                 self.dig(r,c)
         
-        # If our initial dig didn't hit a bomb, we shouldn't hit a bomb here
+        # Return true, impossible to hit a bomb at this point.
         return True
 
+    # Helper function that returns an object that when printed, shows the board
     def __str__(self):
-        # this is a magic function where if you call print on this object,
-        # it'll print out what this function returns!
-        # return a string that shows the board to the player
 
-        # first let's create a new array that represents what the user would see
+        # Array to represent the board
         visible_board = [[None for _ in range(self.dim_size)] for _ in range(self.dim_size)]
         for row in range(self.dim_size):
             for col in range(self.dim_size):
@@ -118,8 +119,9 @@ class Board:
                 else:
                     visible_board[row][col] = ' '
         
-        # put this together in a string
+        # Initialize string representation
         string_rep = ''
+
         # get max column widths for printing
         widths = []
         for idx in range(self.dim_size):
@@ -155,22 +157,23 @@ class Board:
 
         return string_rep
 
-# Gameplay
+# Main/Game 
 def play(dim_size=10, num_bombs=10):
+
     # 1) Create the board and plant bombs
     board = Board(dim_size, num_bombs)
     safe = True
 
-    # 2) Show the user the board and ask where to plant the bombs
+    # 2) Optional: Show the user the board and ask where to plant the bombs
     # print(board.__str__())
 
+    # Gameplay
     # 3a) If bomb, show game over
-
     # 3b) If not bomb, dig recursively until each square
     #       is at least next to a bomb
-
     # 4) Repeat 2 and 3 until there are no more places to dig -> Win
 
+    # Show the board and ask the user for input until the game is over
     while len(board.dug) < board.dim_size ** 2 - num_bombs:
         print(board)
 
@@ -180,7 +183,7 @@ def play(dim_size=10, num_bombs=10):
         # 0,0 or 0 or 0,     0
         user_input = re.split(',(\\s)*', input("Where would you like to dig?\nChoice: "))
         
-        # take first and last value
+        # take first and last value only
         row, col = int(user_input[0]), int(user_input[-1])
 
         # out of bounds
@@ -188,7 +191,7 @@ def play(dim_size=10, num_bombs=10):
             print("Invalid location. Try again")
             continue
     
-        # valid move, dig
+        # valid move, dig here
         safe = board.dig(row, col)
 
         if not safe:
